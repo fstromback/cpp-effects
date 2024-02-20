@@ -1,0 +1,6 @@
+test
+
+:template yes
+:header-ext h
+:namespace yes
+:namespace-map test -

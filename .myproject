@@ -1,0 +1,9 @@
+[]
+include=./
+include+=../
+
+[!release]
+define+=DEBUG
+
+[build]
+effects+=lib
