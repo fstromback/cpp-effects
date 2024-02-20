@@ -19,9 +19,10 @@ namespace effects {
 	Handler_Frame::Handler_Frame(Stack::Create create_mode)
 		: stack(create_mode), previous(nullptr) {}
 
-	void Handler_Frame::call(Handler_Body *body) {
+	void Handler_Frame::call(Handler_Body *body, const Handler_Clause_Map &clauses) {
 		Handler_Frame *frame = new Handler_Frame(Stack::allocate);
 		frame->previous = current();
+		frame->clauses = clauses; // TODO: Do we really want to copy?
 
 		// Execute the stack!
 		frame->stack.start(frame->previous->stack, &frame_main, body);

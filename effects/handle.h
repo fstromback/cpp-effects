@@ -2,6 +2,7 @@
 #include <exception>
 #include <optional>
 #include "handler_frame.h"
+#include "handler.h"
 
 namespace effects {
 
@@ -19,14 +20,15 @@ namespace effects {
 		virtual void call() = 0;
 	};
 
-	template <typename Result, typename Function>
+	template <typename Result, typename Function, typename ReturnHandler>
 	class Handler_Body_Impl : public Handler_Body {
 	public:
-		Handler_Body_Impl(Function f) : to_call(std::move(f)) {}
+		Handler_Body_Impl(Function f, ReturnHandler return_handler)
+			: to_call(std::move(f)), return_handler(std::move(return_handler)) {}
 
 		virtual void call() override {
 			try {
-				result_value = to_call();
+				result_value = return_handler(to_call());
 			} catch (...) {
 				error_value = std::current_exception();
 			}
@@ -42,13 +44,15 @@ namespace effects {
 
 	private:
 		Function to_call;
+		ReturnHandler return_handler;
 		std::optional<Result> result_value;
 		std::exception_ptr error_value;
 	};
 
-	template <typename Function>
-	class Handler_Body_Impl<void, Function> {
-		Handler_Body_Impl(Function f) : to_call(std::move(f)) {}
+	template <typename Function, typename ReturnHandler>
+	class Handler_Body_Impl<void, Function, ReturnHandler> {
+		Handler_Body_Impl(Function f, ReturnHandler return_handler)
+			: to_call(std::move(f)), return_handler(std::move(return_handler)) {}
 
 		virtual void call() override {
 			try {
@@ -66,16 +70,17 @@ namespace effects {
 
 	private:
 		Function to_call;
+		ReturnHandler return_handler;
 		std::exception_ptr error_value;
 	};
 
 
 	// Handle effects with a handler.
-	template <typename HandlerBody>
-	auto handle(HandlerBody body) -> decltype(body()) {
+	template <typename FromType, typename ToType, typename HandlerBody>
+	ToType handle(const Handler<ToType, FromType> &handler, HandlerBody body) {
 		// TODO: Heap-allocate with a suitable smart pointer!
-		Handler_Body_Impl<decltype(body()), HandlerBody> b(std::move(body));
-		Handler_Frame::call(&b);
+		Handler_Body_Impl<ToType, HandlerBody, decltype(handler.return_handler)> b(std::move(body), handler.return_handler);
+		Handler_Frame::call(&b, handler.clauses);
 		return b.result();
 	}
 

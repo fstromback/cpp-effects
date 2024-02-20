@@ -1,5 +1,6 @@
 #pragma once
 #include "stack.h"
+#include "handler.h"
 
 namespace effects {
 
@@ -27,7 +28,7 @@ namespace effects {
 		static Handler_Frame *current();
 
 		// Call a function on a new handler frame.
-		static void call(Handler_Body *body);
+		static void call(Handler_Body *body, const Handler_Clause_Map &clauses);
 
 	private:
 		// Stack that this frame executes on.
@@ -35,6 +36,9 @@ namespace effects {
 
 		// Previous frame, if any.
 		Handler_Frame *previous;
+
+		// Clauses handled here.
+		Handler_Clause_Map clauses;
 
 		// Helper function used as the "main" function for new handler frames.
 		static void frame_main(void *ptr);
