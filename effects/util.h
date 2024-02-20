@@ -1,5 +1,10 @@
 #pragma once
+#include <tuple>
 
-/**
- * General utilities.
- */
+namespace effects {
+
+	/**
+	 * General utilities.
+	 */
+
+}

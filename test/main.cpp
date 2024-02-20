@@ -22,10 +22,9 @@ Handler<int, int> my_handler{
 int main() {
 	int result = handle(my_handler, [](){
 		std::cout << "Hello!" << std::endl;
-		return 1;
-		// int from_effect = my_effect(1);
-		// std::cout << "From the effect: " << from_effect << std::endl;
-		// return from_effect * 2;
+		int from_effect = my_effect(1);
+		std::cout << "From the effect: " << from_effect << std::endl;
+		return from_effect * 2;
 	});
 
 	std::cout << "Result: " << result << std::endl;

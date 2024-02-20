@@ -5,6 +5,7 @@
 namespace effects {
 
 	class Handler_Body;
+	class Handler_Clause;
 
 	/**
 	 * Represents a handler frame on the current execution stack.
@@ -29,6 +30,9 @@ namespace effects {
 
 		// Call a function on a new handler frame.
 		static void call(Handler_Body *body, const Handler_Clause_Map &clauses);
+
+		// Find a handler for an effect.
+		static Handler_Clause *find(size_t effect_id);
 
 	private:
 		// Stack that this frame executes on.

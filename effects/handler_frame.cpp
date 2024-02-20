@@ -23,6 +23,7 @@ namespace effects {
 		Handler_Frame *frame = new Handler_Frame(Stack::allocate);
 		frame->previous = current();
 		frame->clauses = clauses; // TODO: Do we really want to copy?
+		top_handler = frame;
 
 		// Execute the stack!
 		frame->stack.start(frame->previous->stack, &frame_main, body);
@@ -40,6 +41,16 @@ namespace effects {
 
 		// TODO: Refcount instead?
 		delete current;
+	}
+
+	Handler_Clause *Handler_Frame::find(size_t id) {
+		for (Handler_Frame *current = top_handler; current; current = current->previous) {
+			auto found = current->clauses.find(id);
+			if (found != current->clauses.end()) {
+				return &found->second;
+			}
+		}
+		return nullptr;
 	}
 
 }
