@@ -1,5 +1,4 @@
 #pragma once
-#include "effect.h"
 #include <functional>
 
 namespace effects {
@@ -16,6 +15,9 @@ namespace effects {
 		// Create.
 		Handler_Clause(size_t effect_id) : id(effect_id) {}
 
+		// Destructor.
+		virtual ~Handler_Clause() = default;
+
 		// Unique ID for the handled effect.
 		const size_t id;
 	};
@@ -24,20 +26,11 @@ namespace effects {
 	class Bound_Handler_Clause : public Handler_Clause {
 	public:
 		// Create.
-		Bound_Handler_Clause(const Effect<Signature> &effect, std::function<Signature> body)
-			: Handler_Clause(effect.id()), effect(effect), body(std::move(body)) {}
-
-		// The effect being handled.
-		const Effect<Signature> &effect;
+		Bound_Handler_Clause(size_t effect_id, std::function<Signature> body)
+			: Handler_Clause(effect_id), body(std::move(body)) {}
 
 		// Body of the handler.
 		std::function<Signature> body;
 	};
-
-	// Create clauses conveniently.
-	template <typename Signature, typename Body>
-	Bound_Handler_Clause<Signature> clause(const Effect<Signature> &effect, Body body) {
-		return Bound_Handler_Clause<Signature>(effect, body);
-	}
 
 }

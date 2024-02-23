@@ -1,16 +1,16 @@
 #pragma once
 #include <cstddef>
+#include <exception>
+#include "captured_effect.h"
 
 namespace effects {
-
-	class Handler_Clause;
 
 	/**
 	 * This file contains definition of effects.
 	 */
 
-	// Helper to find a handler.
-	Handler_Clause *find_handler(size_t id);
+	// Helper to call a handler.
+	void call_handler(size_t id, Captured_Effect *captured);
 
 
 	template <typename Signature>
@@ -26,10 +26,21 @@ namespace effects {
 
 		// Call the effect.
 		Result operator ()(Args&& ...args) {
-			Handler_Clause *found = find_handler(id());
-			// TODO: If found, save everyhting and resume on the original stack.
+			Bound_Captured_Effect<Result, Args...> bound(
+				std::forward<Args...>(args)...);
 
-			return Result{};
+			call_handler(id(), &bound);
+
+			return bound.result();
+		}
+	};
+
+	// Thrown if a handler is not present.
+	class no_handler : std::exception {
+	public:
+		no_handler() = default;
+		virtual const char *what() const noexcept {
+			return "No handler was found for an effect.";
 		}
 	};
 

@@ -1,10 +1,11 @@
 #pragma once
 #include "stack.h"
 #include "handler.h"
+#include "captured_effect.h"
 
 namespace effects {
 
-	class Handler_Body;
+	class Handle_Body;
 	class Handler_Clause;
 
 	/**
@@ -29,10 +30,10 @@ namespace effects {
 		static Handler_Frame *current();
 
 		// Call a function on a new handler frame.
-		static void call(Handler_Body *body, const Handler_Clause_Map &clauses);
+		static void call(Handle_Body *body, const Handler_Clause_Map &clauses);
 
-		// Find a handler for an effect.
-		static Handler_Clause *find(size_t effect_id);
+		// Call an effect handler.
+		static void call_handler(size_t id, Captured_Effect *captured);
 
 	private:
 		// Stack that this frame executes on.
@@ -44,8 +45,14 @@ namespace effects {
 		// Clauses handled here.
 		Handler_Clause_Map clauses;
 
+		// Effect handler to resume.
+		Resume_Params to_resume;
+
 		// Helper function used as the "main" function for new handler frames.
 		static void frame_main(void *ptr);
+
+		// Helper to actually call the handler we found.
+		void call_handler(const Handler_Clause &clause, Captured_Effect *captured);
 	};
 
 }

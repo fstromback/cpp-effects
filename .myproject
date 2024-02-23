@@ -1,6 +1,7 @@
 []
 include=./
 include+=../
+standard=c++17
 
 [!release]
 define+=DEBUG
