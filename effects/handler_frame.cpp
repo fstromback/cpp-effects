@@ -35,9 +35,11 @@ namespace effects {
 			Resume_Params resume = current->to_resume;
 			current->to_resume = Resume_Params();
 
+			// TODO: Create a continuation based on where we resumed from.
+
 			// Resume!
 			resume.result_to = body;
-			resume.call();
+			resume.call(Continuation_Base());
 		}
 	}
 
@@ -72,6 +74,7 @@ namespace effects {
 		to_resume.to_call = &clause;
 
 		// TODO: Memcpy all stacks to create a continuation and store it somewhere!
+		// We need to do that once we are back on the original stack.
 
 		stack.resume();
 	}

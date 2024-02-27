@@ -2,6 +2,7 @@
 #include <cstddef>
 #include <exception>
 #include "captured_effect.h"
+#include "continuation.h"
 
 namespace effects {
 

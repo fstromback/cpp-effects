@@ -24,7 +24,7 @@ namespace effects {
 		const Handler_Clause *to_call = nullptr;
 
 		// Call.
-		void call();
+		void call(const Continuation_Base &cont);
 	};
 
 
@@ -38,7 +38,7 @@ namespace effects {
 		virtual ~Captured_Effect() = default;
 
 		// Call the captured effect.
-		virtual void call(Resume_Params *params) = 0;
+		virtual void call(Resume_Params *params, const Continuation_Base &cont) = 0;
 	};
 
 	/**
@@ -56,15 +56,13 @@ namespace effects {
 		}
 
 		// Call.
-		virtual void call(Resume_Params *params) override {
-			using Body_Type = Handle_Body_Result<Result>;
-			using Handler_Type = Bound_Handler_Clause<Result (Args...)>;
+		virtual void call(Resume_Params *params, const Continuation_Base &cont) override {
+			using Handler_Type = Partial_Handler_Clause<Result (Args...)>;
 
 			// Note: We can use static_cast, but we use dynamic_cast to get a "free" assert of the types.
-			Body_Type &result =	dynamic_cast<Body_Type &>(*params->result_to);
 			const Handler_Type &handler = dynamic_cast<const Handler_Type &>(*params->to_call);
 
-			result.set_result(Tuple_Call<Result, std::tuple<Args...>>::call(handler.body, args));
+			handler.call(*params->result_to, args, cont);
 		}
 
 	private:

@@ -6,6 +6,7 @@
 
 
 #include "effect.h"
+#include "continuation.h"
 #include "handler.h"
 #include "handle.h"
 

@@ -2,8 +2,8 @@
 
 namespace effects {
 
-	void Resume_Params::call() {
-		effect->call(this);
+	void Resume_Params::call(const Continuation_Base &cont) {
+		effect->call(this, cont);
 	}
 
 }

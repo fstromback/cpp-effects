@@ -6,12 +6,21 @@ using namespace effects;
 
 Effect<int (int)> my_effect;
 
+int cont(int x) { return x; }
+
 Handler<int, int> my_handler{
 	{
-		clause(my_effect, [](int param) {
-			std::cout << "In handler: " << param << std::endl;
-			return param + 1;
-		})
+		{
+			my_effect,
+			[](int param, const Continuation<int, int> &cont) {
+				std::cout << "In handler: " << param << std::endl;
+				int r = cont(param + 1);
+				std::cout << "Got " << r << " from continuation." << std::endl;
+				int s = cont(param + 2);
+				std::cout << "Got " << s << " from continuation." << std::endl;
+				return r + s;
+			}
+		}
 	},
 	[](int result) {
 		std::cout << "Return handler: " << result << std::endl;
