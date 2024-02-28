@@ -16,7 +16,7 @@ namespace effects {
 		// TODO: Heap-allocate with a suitable smart pointer!
 		Handle_Body_Impl<ToType, HandleBody, decltype(handler.return_handler)> b(std::move(body), handler.return_handler);
 		Handler_Frame::call(&b, handler.clauses);
-		return b.result();
+		return b.result.result();
 	}
 
 }

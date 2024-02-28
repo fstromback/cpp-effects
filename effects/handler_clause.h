@@ -3,6 +3,7 @@
 #include "continuation.h"
 #include "handle_body.h"
 #include "util.h"
+#include "result.h"
 
 namespace effects {
 
@@ -36,7 +37,10 @@ namespace effects {
 	public:
 		Partial_Handler_Clause(size_t effect_id) : Handler_Clause(effect_id) {}
 
-		virtual void call(Handle_Body &result_to, const std::tuple<Args...> &args, const Continuation_Base &cont) const = 0;
+		virtual void call(Generic_Result &result_to,
+						const std::tuple<Args...> &args,
+						const Captured_Continuation &cont,
+						Result<EffectResult> &cont_param_to) const = 0;
 	};
 
 
@@ -60,13 +64,14 @@ namespace effects {
 		// Body of the handler.
 		Real_Function body;
 
-		virtual void call(Handle_Body &result_to, const std::tuple<Args...> &args, const Continuation_Base &cont) const {
-			using Body_Type = Handle_Body_Result<HandlerResult>;
+		virtual void call(Generic_Result &result_to,
+						const std::tuple<Args...> &args,
+						const Captured_Continuation &cont,
+						Result<EffectResult> &cont_param_to) const override {
+			Result<HandlerResult> &out = dynamic_cast<Result<HandlerResult> &>(result_to);
 
-			Body_Type &out = dynamic_cast<Body_Type &>(result_to);
-			const Continuation_Type &c = dynamic_cast<const Continuation_Type &>(cont);
-
-			out.set_result(Tuple_Call<HandlerResult, std::tuple<Args...>>::call(body, args, c));
+			Continuation_Type c(cont, out, cont_param_to);
+			out.set(Tuple_Call<HandlerResult, std::tuple<Args...>>::call(body, args, c));
 		}
 	};
 

@@ -32,14 +32,20 @@ namespace effects {
 
 		// Note: We will return here after execution is complete, or when an effect was triggered.
 		while (current->to_resume.effect) {
-			Resume_Params resume = current->to_resume;
-			current->to_resume = Resume_Params();
+			Resume resume = current->to_resume;
+			current->to_resume = Resume();
 
-			// TODO: Create a continuation based on where we resumed from.
+			// Capture the continuation and reset the top handler.
+			Captured_Continuation continuation = capture_continuation(top_handler, current);
+			top_handler = current;
 
 			// Resume!
-			resume.result_to = body;
-			resume.call(Continuation_Base());
+			Resume_Params params = {
+				body,
+				resume.to_call,
+				&continuation
+			};
+			resume.effect->call(params);
 		}
 	}
 
@@ -73,9 +79,39 @@ namespace effects {
 		to_resume.effect = captured;
 		to_resume.to_call = &clause;
 
-		// TODO: Memcpy all stacks to create a continuation and store it somewhere!
-		// We need to do that once we are back on the original stack.
-
 		stack.resume();
+	}
+
+	Captured_Continuation Handler_Frame::capture_continuation(Handler_Frame *from, Handler_Frame *to) {
+		size_t depth = 0;
+		for (Handler_Frame *current = from; current != to; current = current->previous) {
+			depth++;
+		}
+
+		Captured_Continuation captured(depth);
+
+		size_t id = 0;
+		for (Handler_Frame *current = from; current != to; current = current->previous, id++) {
+			captured.frames.push_back(Stack_Mirror(current, current->stack));
+		}
+
+		// Copy elision.
+		return captured;
+	}
+
+	void Handler_Frame::resume_continuation(const Captured_Continuation &src) {
+		// Restore all of the stacks:
+		for (size_t i = 0; i < src.frames.size(); i++) {
+			src.frames[i].restore();
+		}
+
+		// Link the handlers into "top_frame":
+		for (size_t i = src.frames.size(); i > 0; i--) {
+			src.frames[i - 1].handler->previous = top_handler;
+			top_handler = src.frames[i - 1].handler;
+		}
+
+		// Finally, resume the topmost one:
+		top_handler->stack.resume();
 	}
 }

@@ -32,7 +32,7 @@ namespace effects {
 
 			call_handler(id(), &bound);
 
-			return bound.result();
+			return bound.result.result();
 		}
 	};
 

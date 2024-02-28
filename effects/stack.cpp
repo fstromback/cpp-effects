@@ -60,4 +60,37 @@ namespace effects {
 		setcontext(&context);
 	}
 
+	static size_t get_sp(const ucontext_t &context) {
+#ifdef __x86_64__
+		return context.uc_mcontext.gregs[REG_RSP];
+#else
+#error "Unknown machine, can not extract the stack pointer."
+		return 0;
+#endif
+	}
+
+	Stack_Mirror::Stack_Mirror(Handler_Frame *handler, Stack &src) : handler(handler), original(&src) {
+		context = src.context;
+
+		size_t stack_low = reinterpret_cast<size_t>(context.uc_stack.ss_sp);
+		size_t stack_high = stack_low + context.uc_stack.ss_size;
+
+		size_t sp = get_sp(context);
+
+		// Note: We assume that stack grows towards lower adresses.
+		char *copy_start = reinterpret_cast<char *>(sp);
+		size_t to_copy = stack_high - sp;
+		stack_copy = std::vector<char>(copy_start, copy_start + to_copy);
+	}
+
+	void Stack_Mirror::restore() const {
+		original->context = context;
+
+		size_t stack_low = reinterpret_cast<size_t>(context.uc_stack.ss_sp);
+		size_t stack_high = stack_low + context.uc_stack.ss_size;
+
+		char *copy_to = reinterpret_cast<char *>(stack_high - stack_copy.size());
+		std::copy(stack_copy.begin(), stack_copy.end(), copy_to);
+	}
+
 }

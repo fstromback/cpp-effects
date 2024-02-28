@@ -35,6 +35,9 @@ namespace effects {
 		// Call an effect handler.
 		static void call_handler(size_t id, Captured_Effect *captured);
 
+		// Resume a continuation.
+		static void resume_continuation(const Captured_Continuation &cont);
+
 	private:
 		// Stack that this frame executes on.
 		Stack stack;
@@ -45,14 +48,28 @@ namespace effects {
 		// Clauses handled here.
 		Handler_Clause_Map clauses;
 
+		/**
+		 * Data structure used to determine what to resume.
+		 */
+		struct Resume {
+			// Effect to execute.
+			Captured_Effect *effect = nullptr;
+
+			// Handler clause to call.
+			const Handler_Clause *to_call = nullptr;
+		};
+
 		// Effect handler to resume.
-		Resume_Params to_resume;
+		Resume to_resume;
 
 		// Helper function used as the "main" function for new handler frames.
 		static void frame_main(void *ptr);
 
 		// Helper to actually call the handler we found.
 		void call_handler(const Handler_Clause &clause, Captured_Effect *captured);
+
+		// Helper to capture a continuation.
+		static Captured_Continuation capture_continuation(Handler_Frame *from, Handler_Frame *to);
 	};
 
 }

@@ -1,33 +1,57 @@
 #pragma once
+#include "stack.h"
+#include "result.h"
+#include <vector>
 
 namespace effects {
 
 	/**
-	 * A continuation that can be invoked.
+	 * Captured contents of a continuation.
 	 *
-	 * Contains a list of stacks that have been saved and that should be resumed.
+	 * This data can be used to create a proper Continuation<> below.
 	 */
-	class Continuation_Base {
+	class Captured_Continuation {
 	public:
-		virtual ~Continuation_Base() = default;
+		// Create a copy of a stack.
+		Captured_Continuation(size_t depth) {
+			frames.reserve(depth);
+		}
+
+		// Store stack frames.
+		std::vector<Stack_Mirror> frames;
+
+		// Resume a captured continuation.
+		void resume() const;
 	};
 
-
 	/**
-	 * Parameterized continuation.
+	 * A continuation with parameters that can be invoked.
+	 *
+	 * We currently do not allow copying the continuation, as that would allow cycles in refcounts
+	 * easily.
 	 */
 	template <typename Result, typename Param>
 	class Continuation {
 	public:
+		// Disable copying the continuation to make resource management easier.
 		Continuation(const Continuation &) = delete;
 		Continuation &operator =(const Continuation &) = delete;
 
+		// Create a continuation from a captured continuation, as well as where to retrieve the result from.
+		Continuation(Captured_Continuation src, effects::Result<Result> &result, effects::Result<Param> &param)
+			: src(src), result(result), param(param) {}
+
 		// Call the continuation.
 		Result operator() (Param param) const {
-			(void)param;
-			// ...
-			return Result{};
+			this->param.set(std::move(param));
+			src.resume();
+			return this->result.result();
 		}
+
+	private:
+		Captured_Continuation src;
+		effects::Result<Result> &result;
+		effects::Result<Param> &param;
 	};
 
 }

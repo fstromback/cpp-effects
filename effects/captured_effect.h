@@ -12,19 +12,15 @@ namespace effects {
 	/**
 	 * Parameters needed to call a handler from a Captured_Effect.
 	 */
-	class Resume_Params {
-	public:
-		// The effect to execute.
-		Captured_Effect *effect = nullptr;
-
+	struct Resume_Params {
 		// Result should be stored here.
 		Handle_Body *result_to = nullptr;
 
 		// Handler clause to call.
 		const Handler_Clause *to_call = nullptr;
 
-		// Call.
-		void call(const Continuation_Base &cont);
+		// Captured continuation.
+		const Captured_Continuation *continuation = nullptr;
 	};
 
 
@@ -38,8 +34,9 @@ namespace effects {
 		virtual ~Captured_Effect() = default;
 
 		// Call the captured effect.
-		virtual void call(Resume_Params *params, const Continuation_Base &cont) = 0;
+		virtual void call(Resume_Params params) = 0;
 	};
+
 
 	/**
 	 * Specialization.
@@ -50,27 +47,22 @@ namespace effects {
 		// Create.
 		Bound_Captured_Effect(Args&& ...args) : args(std::forward<Args...>(args)...) {}
 
-		// Get the result.
-		Result result() const {
-			return res.value();
-		}
+		// The result produced by the effect.
+		effects::Result<Result> result;
 
 		// Call.
-		virtual void call(Resume_Params *params, const Continuation_Base &cont) override {
+		virtual void call(Resume_Params params) override {
 			using Handler_Type = Partial_Handler_Clause<Result (Args...)>;
 
 			// Note: We can use static_cast, but we use dynamic_cast to get a "free" assert of the types.
-			const Handler_Type &handler = dynamic_cast<const Handler_Type &>(*params->to_call);
+			const Handler_Type &handler = dynamic_cast<const Handler_Type &>(*params.to_call);
 
-			handler.call(*params->result_to, args, cont);
+			handler.call(params.result_to->generic_result(), args, *params.continuation, result);
 		}
 
 	private:
 		// Parameters.
 		std::tuple<Args...> args;
-
-		// Result.
-		std::optional<Result> res;
 	};
 
 }

@@ -1,7 +1,10 @@
 #pragma once
 #include <ucontext.h>
+#include <vector>
 
 namespace effects {
+
+	class Handler_Frame;
 
 	/**
 	 * This file contains logic for manipulation of different execution stacks on a thread.
@@ -45,6 +48,9 @@ namespace effects {
 
 		// Size of the allocated stack.
 		size_t stack_size;
+
+		// Friend the mirror to allow save/restore.
+		friend class Stack_Mirror;
 	};
 
 
@@ -54,6 +60,24 @@ namespace effects {
 	 */
 	class Stack_Mirror {
 	public:
+		// Create.
+		Stack_Mirror(Handler_Frame *handler, Stack &original);
+
+		// Associated handler frame.
+		Handler_Frame *handler;
+
+		// Restore.
+		void restore() const;
+
+	private:
+		// Copy of the ucontext.
+		ucontext_t context;
+
+		// Contents of the stack.
+		std::vector<char> stack_copy;
+
+		// Stack we originally copied from, so that we can restore to it.
+		Stack *original;
 	};
 
 }

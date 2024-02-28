@@ -1,6 +1,7 @@
 #pragma once
 #include <exception>
 #include <optional>
+#include "result.h"
 
 namespace effects {
 
@@ -14,48 +15,21 @@ namespace effects {
 
 		// Call the handler body.
 		virtual void call() = 0;
+
+		// Get the generic result.
+		virtual Generic_Result &generic_result() = 0;
 	};
 
 	// A handler body with a result.
 	template <typename Result>
 	class Handle_Body_Result : public Handle_Body {
 	public:
-		Result result() const {
-			if (error_value) {
-				std::rethrow_exception(error_value);
-			} else {
-				return result_value.value();
-			}
+		effects::Result<Result> result;
+
+		// Get the generic result.
+		virtual Generic_Result &generic_result() override {
+			return result;
 		}
-
-		void set_result(const Result &v) {
-			result_value = v;
-		}
-
-		void set_error(std::exception_ptr ptr) {
-			error_value = std::move(ptr);
-		}
-
-	private:
-		std::optional<Result> result_value;
-		std::exception_ptr error_value;
-	};
-
-	template <>
-	class Handle_Body_Result<void> : public Handle_Body {
-	public:
-		void result() const {
-			if (error_value) {
-				std::rethrow_exception(error_value);
-			}
-		}
-
-		void set_error(std::exception_ptr ptr) {
-			error_value = std::move(ptr);
-		}
-
-	private:
-		std::exception_ptr error_value;
 	};
 
 	template <typename Result, typename Function, typename ReturnHandler>
@@ -66,9 +40,9 @@ namespace effects {
 
 		virtual void call() override {
 			try {
-				this->set_result(return_handler(to_call()));
+				this->result.set(return_handler(to_call()));
 			} catch (...) {
-				this->set_error(std::current_exception());
+				this->result.set_error(std::current_exception());
 			}
 		}
 
@@ -86,7 +60,7 @@ namespace effects {
 			try {
 				to_call();
 			} catch (...) {
-				this->set_error(std::current_exception());
+				this->result.set_error(std::current_exception());
 			}
 		}
 
