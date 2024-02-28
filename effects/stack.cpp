@@ -56,8 +56,13 @@ namespace effects {
 		swapcontext(&prev.context, &context);
 	}
 
-	void Stack::resume() {
-		setcontext(&context);
+	void Stack::resume(Stack &prev) {
+		swapcontext(&prev.context, &context);
+	}
+
+	std::ostream &operator <<(std::ostream &to, const Stack &s) {
+		void *end = reinterpret_cast<char *>(s.stack_base) + s.stack_size;
+		return to << "Stack: " << s.stack_base << " - " << end;
 	}
 
 	static size_t get_sp(const ucontext_t &context) {

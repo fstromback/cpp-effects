@@ -1,6 +1,7 @@
 #pragma once
 #include <cstddef>
 #include <exception>
+#include <memory>
 #include "captured_effect.h"
 #include "continuation.h"
 
@@ -27,12 +28,14 @@ namespace effects {
 
 		// Call the effect.
 		Result operator ()(Args&& ...args) {
-			Bound_Captured_Effect<Result, Args...> bound(
-				std::forward<Args...>(args)...);
+			using Bound = Bound_Captured_Effect<Result, Args...>;
 
-			call_handler(id(), &bound);
+			// TODO: Will only work once...
+			std::unique_ptr<Bound> bound = std::make_unique<Bound>(std::forward<Args...>(args)...);
 
-			return bound.result.result();
+			call_handler(id(), bound.get());
+
+			return bound->result.result();
 		}
 	};
 

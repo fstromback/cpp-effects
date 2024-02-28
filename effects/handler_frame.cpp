@@ -79,7 +79,7 @@ namespace effects {
 		to_resume.effect = captured;
 		to_resume.to_call = &clause;
 
-		stack.resume();
+		stack.resume(top_handler->stack);
 	}
 
 	Captured_Continuation Handler_Frame::capture_continuation(Handler_Frame *from, Handler_Frame *to) {
@@ -100,6 +100,8 @@ namespace effects {
 	}
 
 	void Handler_Frame::resume_continuation(const Captured_Continuation &src) {
+		Stack &save_to = top_handler->stack;
+
 		// Restore all of the stacks:
 		for (size_t i = 0; i < src.frames.size(); i++) {
 			src.frames[i].restore();
@@ -112,6 +114,6 @@ namespace effects {
 		}
 
 		// Finally, resume the topmost one:
-		top_handler->stack.resume();
+		top_handler->stack.resume(save_to);
 	}
 }

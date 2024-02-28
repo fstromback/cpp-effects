@@ -1,6 +1,7 @@
 #pragma once
 #include <ucontext.h>
 #include <vector>
+#include <iostream>
 
 namespace effects {
 
@@ -35,8 +36,8 @@ namespace effects {
 		// the function executes to completion.
 		void start(Stack &prev, void (*func)(void *), void *arg);
 
-		// Resume executing this stack. Does not save the current context anywhere.
-		void resume();
+		// Resume executing this stack. Saves the current stack in "prev".
+		void resume(Stack &prev);
 
 	private:
 		// The context that this stack represents. When the stack is currently being executed, the
@@ -51,7 +52,13 @@ namespace effects {
 
 		// Friend the mirror to allow save/restore.
 		friend class Stack_Mirror;
+
+		// For ouput.
+		friend std::ostream &operator <<(std::ostream &to, const Stack &s);
 	};
+
+	// Output.
+	std::ostream &operator <<(std::ostream &to, const Stack &s);
 
 
 	/**

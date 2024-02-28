@@ -32,7 +32,7 @@ namespace effects {
 
 		// Set the result.
 		void set(T value) {
-			value = std::move(value);
+			this->value = std::move(value);
 		}
 
 		// Set an error. Called from a try-block.
