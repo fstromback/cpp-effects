@@ -2,11 +2,14 @@
 #include "stack.h"
 #include "handler.h"
 #include "captured_effect.h"
+#include "pointer.h"
+#include <unordered_set>
 
 namespace effects {
 
 	class Handle_Body;
 	class Handler_Clause;
+	class Shared_Ptr_Base;
 
 	/**
 	 * Represents a handler frame on the current execution stack.
@@ -42,6 +45,9 @@ namespace effects {
 		// Stack that this frame executes on.
 		Stack stack;
 
+		// List of shared pointers allocated on the stack.
+		std::unordered_set<Shared_Ptr_Base *> shared_ptrs;
+
 		// Previous frame, if any.
 		Handler_Frame *previous;
 
@@ -70,6 +76,13 @@ namespace effects {
 
 		// Helper to capture a continuation.
 		static Captured_Continuation capture_continuation(Handler_Frame *from, Handler_Frame *to);
+
+		// Allow registering shared ptrs here.
+		friend class Shared_Ptr_Base;
+
+		// Add/remove shared pointers.
+		static void add_shared_ptr(Shared_Ptr_Base *p);
+		static void remove_shared_ptr(Shared_Ptr_Base *p);
 	};
 
 }

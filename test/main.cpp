@@ -28,9 +28,21 @@ Handler<int, int> my_handler{
 	}
 };
 
+class Heap {
+public:
+	Heap() {
+		std::cout << "Created heap class!" << std::endl;
+	}
+
+	~Heap() {
+		std::cout << "Destroyed heap class!" << std::endl;
+	}
+};
+
 int main() {
 	int result = handle(my_handler, [](){
 		std::cout << "Hello!" << std::endl;
+		Shared_Ptr<Heap> h = make_shared<Heap>();
 		int from_effect = my_effect(1);
 		std::cout << "From the effect: " << from_effect << std::endl;
 		return from_effect * 2;

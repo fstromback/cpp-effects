@@ -39,6 +39,13 @@ namespace effects {
 		// Resume executing this stack. Saves the current stack in "prev".
 		void resume(Stack &prev);
 
+		// Does the stack contain an object?
+		bool contains(void *ptr) const {
+			size_t start = reinterpret_cast<size_t>(stack_base);
+			size_t p = reinterpret_cast<size_t>(ptr);
+			return p >= start && p < (start + stack_size);
+		}
+
 	private:
 		// The context that this stack represents. When the stack is currently being executed, the
 		// contents of this member might not be reliable.

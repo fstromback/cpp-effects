@@ -111,4 +111,17 @@ namespace effects {
 		// Finally, resume the topmost one:
 		top_handler->stack.resume(save_to);
 	}
+
+	void Handler_Frame::add_shared_ptr(Shared_Ptr_Base *p) {
+		Handler_Frame *c = current();
+		if (c->stack.contains(p))
+			c->shared_ptrs.insert(p);
+	}
+
+	void Handler_Frame::remove_shared_ptr(Shared_Ptr_Base *p) {
+		Handler_Frame *c = current();
+		if (c->stack.contains(p))
+			c->shared_ptrs.erase(p);
+	}
+
 }
