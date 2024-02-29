@@ -20,6 +20,10 @@ namespace effects {
 	Handler_Frame::Handler_Frame(Stack::Create create_mode)
 		: stack(create_mode), previous(nullptr) {}
 
+	Handler_Frame::~Handler_Frame() {
+		assert(shared_ptrs.empty());
+	}
+
 	void Handler_Frame::call(Handle_Body *body, const Handler_Clause_Map &clauses) {
 		Handler_Frame *current = Handler_Frame::current();
 		Handler_Frame *next = new Handler_Frame(Stack::allocate);
@@ -102,10 +106,16 @@ namespace effects {
 	void Handler_Frame::resume_continuation(const Captured_Continuation &src) {
 		Stack &save_to = top_handler->stack;
 
-		// Link the handlers into "top_frame":
+		// Link the handlers into "top_frame". Also update reference counts.
 		for (size_t i = src.frames.size(); i > 0; i--) {
-			src.frames[i - 1].handler->previous = top_handler;
-			top_handler = src.frames[i - 1].handler;
+			Handler_Frame *handler = src.frames[i - 1].handler;
+
+			// Link into the top frame.
+			handler->previous = top_handler;
+			top_handler = handler;
+
+			// Update ref-counts.
+			handler->add_refs();
 		}
 
 		// Finally, resume the topmost one:
@@ -122,6 +132,11 @@ namespace effects {
 		Handler_Frame *c = current();
 		if (c->stack.contains(p))
 			c->shared_ptrs.erase(p);
+	}
+
+	void Handler_Frame::add_refs() {
+		for (Shared_Ptr_Base *p : shared_ptrs)
+			p->count->ref();
 	}
 
 }

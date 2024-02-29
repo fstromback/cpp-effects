@@ -1,6 +1,7 @@
 #pragma once
 #include "stack.h"
 #include "result.h"
+#include "debug.h"
 #include <vector>
 
 namespace effects {
@@ -41,6 +42,11 @@ namespace effects {
 		Continuation(Captured_Continuation src, effects::Result<Result> &result, effects::Result<Param> &param)
 			: src(src), result(result), param(param) {}
 
+		// Destroy the continuation.
+		~Continuation() {
+			PLN("TODO: Should destroy any pointers that are in the captured continuation here!");
+		}
+
 		// Call the continuation.
 		Result operator() (Param param) const {
 			// Restore all stacks first. The parameter is stored on the stack of the receiving
@@ -53,12 +59,19 @@ namespace effects {
 
 			// ...and resume the old stack.
 			src.resume();
+
+			// When we are back here, the continuation has finished executing.
 			return this->result.result();
 		}
 
 	private:
+		// Captured stack frames.
 		Captured_Continuation src;
+
+		// Where is the result from executing the continuation stored?
 		effects::Result<Result> &result;
+
+		// Where should we store the parameter?
 		effects::Result<Param> &param;
 	};
 

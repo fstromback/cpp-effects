@@ -26,6 +26,7 @@ namespace effects {
 
 		// Decrease the references. Returns "true" if we should delete everything.
 		bool deref() {
+			PLN("Deref: " << refs);
 			return --refs == 0;
 		}
 

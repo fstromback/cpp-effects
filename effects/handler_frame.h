@@ -29,6 +29,9 @@ namespace effects {
 		// determine how it is created.
 		Handler_Frame(Stack::Create stack_mode);
 
+		// Destroy. Mostly for sanity-checking.
+		~Handler_Frame();
+
 		// Get the current handler frame for the current thread.
 		static Handler_Frame *current();
 
@@ -83,6 +86,9 @@ namespace effects {
 		// Add/remove shared pointers.
 		static void add_shared_ptr(Shared_Ptr_Base *p);
 		static void remove_shared_ptr(Shared_Ptr_Base *p);
+
+		// Add references to all pointers in here.
+		void add_refs();
 	};
 
 }
