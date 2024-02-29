@@ -35,7 +35,7 @@ namespace effects {
 		// Call an effect handler.
 		static void call_handler(size_t id, Captured_Effect *captured);
 
-		// Resume a continuation.
+		// Resume a continuation. Assumes that all stacks in 'cont' have been restored previously.
 		static void resume_continuation(const Captured_Continuation &cont);
 
 	private:

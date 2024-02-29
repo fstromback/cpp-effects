@@ -28,14 +28,14 @@ namespace effects {
 
 		// Call the effect.
 		Result operator ()(Args&& ...args) {
-			using Bound = Bound_Captured_Effect<Result, Args...>;
+			// Note: We *can* actually store this on the stack since it will be set exactly once for
+			// each time the handler is called! This works since we are careful to restore the
+			// stacks before setting the result.
+			Bound_Captured_Effect<Result, Args...> bound(std::forward<Args...>(args)...);
 
-			// TODO: Will only work once...
-			std::unique_ptr<Bound> bound = std::make_unique<Bound>(std::forward<Args...>(args)...);
+			call_handler(id(), &bound);
 
-			call_handler(id(), bound.get());
-
-			return bound->result.result();
+			return bound.result.result();
 		}
 	};
 

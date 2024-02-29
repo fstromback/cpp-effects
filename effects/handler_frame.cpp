@@ -102,11 +102,6 @@ namespace effects {
 	void Handler_Frame::resume_continuation(const Captured_Continuation &src) {
 		Stack &save_to = top_handler->stack;
 
-		// Restore all of the stacks:
-		for (size_t i = 0; i < src.frames.size(); i++) {
-			src.frames[i].restore();
-		}
-
 		// Link the handlers into "top_frame":
 		for (size_t i = src.frames.size(); i > 0; i--) {
 			src.frames[i - 1].handler->previous = top_handler;

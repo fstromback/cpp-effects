@@ -43,7 +43,15 @@ namespace effects {
 
 		// Call the continuation.
 		Result operator() (Param param) const {
+			// Restore all stacks first. The parameter is stored on the stack of the receiving
+			// piece, so if we store it before restoring stacks, the value will be overwritten.
+			for (const Stack_Mirror &s : src.frames)
+				s.restore();
+
+			// Now, we can set the result...
 			this->param.set(std::move(param));
+
+			// ...and resume the old stack.
 			src.resume();
 			return this->result.result();
 		}

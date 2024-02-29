@@ -16,7 +16,6 @@ Handler<int, int> my_handler{
 				std::cout << "In handler: " << param << std::endl;
 				int r = cont(param + 1);
 				std::cout << "Got " << r << " from continuation." << std::endl;
-				return r;
 				int s = cont(param + 2);
 				std::cout << "Got " << s << " from continuation." << std::endl;
 				return r + s;
