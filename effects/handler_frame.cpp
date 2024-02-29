@@ -58,7 +58,7 @@ namespace effects {
 		top_handler = current->previous;
 
 		// TODO: Refcount instead?
-		delete current;
+		// delete current;
 	}
 
 	void Handler_Frame::call_handler(size_t id, Captured_Effect *captured) {
