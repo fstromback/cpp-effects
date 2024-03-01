@@ -6,8 +6,6 @@ using namespace effects;
 
 Effect<int (int)> my_effect;
 
-int cont(int x) { return x; }
-
 Handler<int, int> my_handler{
 	{
 		{

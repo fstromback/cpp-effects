@@ -1,6 +1,7 @@
 #pragma once
 #include "handler_clause.h"
 #include "effect.h"
+#include "debug.h"
 #include <initializer_list>
 #include <unordered_map>
 #include <functional>
@@ -30,15 +31,23 @@ namespace effects {
 	template <typename Result, typename Input>
 	class Handler {
 	public:
-		// Handler(const std::initializer_list<std::shared_ptr<Partial_Handler_Clause<Input>>> &clauses,
-		// 		std::function<Result (Input)> return_handler = [](Input x){ return x; })
+		// Single clause version.
+		Handler(Handler_Init<Input> clause,
+				std::function<Result (Input)> return_handler = [](Input x){ return x; })
+			: return_handler(std::move(return_handler)) {
+
+			this->clauses.insert(std::make_pair(clause.ptr->id, clause.ptr.get()));
+			this->unique_ptrs.push_back(std::move(clause.ptr));
+		}
+
+		// Multiple clause version.
 		Handler(const std::initializer_list<Handler_Init<Input>> &clauses,
 				std::function<Result (Input)> return_handler = [](Input x){ return x; })
 			: return_handler(std::move(return_handler)) {
 
 			for (auto &&clause : clauses) {
+				this->clauses.insert(std::make_pair(clause.ptr->id, clause.ptr.get()));
 				this->unique_ptrs.push_back(std::move(clause.ptr));
-				this->clauses.insert(std::make_pair(clause.ptr->id, this->unique_ptrs.back().get()));
 			}
 		}
 
