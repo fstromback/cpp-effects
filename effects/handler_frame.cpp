@@ -16,9 +16,7 @@ namespace effects {
 	}
 
 	Handler_Frame::Handler_Frame(Stack::Create create_mode)
-		: stack(create_mode), previous() {
-		PLN("Created " << this);
-	}
+		: stack(create_mode), previous() {}
 
 	Handler_Frame::~Handler_Frame() {
 		if (!shared_ptrs.empty()) {
