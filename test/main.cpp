@@ -14,11 +14,13 @@ Handler<int, int> my_handler{
 			my_effect,
 			[](int param, const Continuation<int, int> &cont) {
 				std::cout << "In handler: " << param << std::endl;
-				int r = cont(param + 1);
-				std::cout << "Got " << r << " from continuation." << std::endl;
-				int s = cont(param + 2);
-				std::cout << "Got " << s << " from continuation." << std::endl;
-				return r + s;
+				int result = 0;
+				for (size_t i = 0; i < 10; i++) {
+					int x = cont(param + i);
+					std::cout << "Got " << x << " from continuation." << std::endl;
+					result += x;
+				}
+				return result;
 			}
 		}
 	},

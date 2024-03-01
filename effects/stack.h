@@ -2,6 +2,7 @@
 #include <ucontext.h>
 #include <vector>
 #include <iostream>
+#include "pointer_set.h"
 
 namespace effects {
 
@@ -75,10 +76,13 @@ namespace effects {
 	class Stack_Mirror {
 	public:
 		// Create.
-		Stack_Mirror(Handler_Frame *handler, Stack &original);
+		Stack_Mirror(Stack &original, Pointer_Set shared_ptrs, Handler_Frame *handler);
 
 		// Associated handler frame.
 		Handler_Frame *handler;
+
+		// Pointers stored on the stack.
+		Pointer_Set shared_ptrs;
 
 		// Restore.
 		void restore() const;

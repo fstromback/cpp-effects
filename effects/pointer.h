@@ -25,13 +25,30 @@ namespace effects {
 		}
 
 		// Decrease the references. Returns "true" if we should delete everything.
-		bool deref() {
-			PLN("Deref: " << refs);
-			return --refs == 0;
+		void deref() {
+			PLN("Deref " << this << " - " << refs);
+			if (--refs == 0) {
+				delete this;
+			}
+		}
+	};
+
+	/**
+	 * Version of the count above that also stores a pointer, so that it can be deallocated.
+	 */
+	template <typename T>
+	class Shared_Separate_Count : public Shared_Count {
+	public:
+		// Create.
+		Shared_Separate_Count(T *object) : object(object) {}
+
+		// Destroy.
+		~Shared_Separate_Count() {
+			delete object;
 		}
 
-		// Should we delete the specified object?
-		virtual bool manual_delete() { return true; }
+		// The data.
+		T *object;
 	};
 
 	/**
@@ -42,11 +59,7 @@ namespace effects {
 	public:
 		// Create.
 		template <typename... Args>
-		Shared_Inline_Count(Args &&...args)
-			: data(std::forward<Args...>(args)...) {}
-
-		// Don't delete explicitly
-	    bool manual_delete() override { return false; }
+		Shared_Inline_Count(Args &&...args) : data(std::forward<Args...>(args)...) {}
 
 		// The data in the allocation.
 		T data;
@@ -67,8 +80,8 @@ namespace effects {
 		// The count variable. Not updated by the destructor, only accessible here.
 		Shared_Count *count;
 
-		// Allow the handler frame access.
-		friend class Handler_Frame;
+		// Allow use from the pointer set.
+		friend class Pointer_Set;
 	};
 
 	/**
@@ -82,7 +95,7 @@ namespace effects {
 		Shared_Ptr() : Shared_Ptr_Base(nullptr), object(nullptr) {}
 
 		// Create from an existing allocation.
-		explicit Shared_Ptr(T *object) : Shared_Ptr_Base(new Shared_Count()), object(object) {}
+		explicit Shared_Ptr(T *object) : Shared_Ptr_Base(new Shared_Separate_Count(object)), object(object) {}
 
 		// Copy.
 		Shared_Ptr(const Shared_Ptr<T> &src) : Shared_Ptr_Base(src.count), object(src.object) {
@@ -109,6 +122,7 @@ namespace effects {
 		}
 
 		Shared_Ptr &&operator =(Shared_Ptr<T> &&src) {
+			// Note: We could simply swap the two here. This makes it easier to catch bugs, however.
 			if (&src == this)
 				return *this;
 
@@ -126,11 +140,8 @@ namespace effects {
 
 		// Destroy.
 		~Shared_Ptr() {
-			if (count && count->deref()) {
-				if (count->manual_delete())
-					delete object;
-				delete count;
-			}
+			if (count)
+				count->deref();
 		}
 
 		// Convert from another type.

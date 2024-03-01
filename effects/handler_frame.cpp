@@ -96,7 +96,7 @@ namespace effects {
 
 		size_t id = 0;
 		for (Handler_Frame *current = from; current != to; current = current->previous, id++) {
-			captured.frames.push_back(Stack_Mirror(current, current->stack));
+			captured.frames.push_back(Stack_Mirror(current->stack, Pointer_Set(current->shared_ptrs), current));
 		}
 
 		// Copy elision.
@@ -108,14 +108,16 @@ namespace effects {
 
 		// Link the handlers into "top_frame". Also update reference counts.
 		for (size_t i = src.frames.size(); i > 0; i--) {
-			Handler_Frame *handler = src.frames[i - 1].handler;
+			const Stack_Mirror &mirror = src.frames[i - 1];
+			Handler_Frame *handler = mirror.handler;
 
 			// Link into the top frame.
 			handler->previous = top_handler;
 			top_handler = handler;
 
 			// Update ref-counts.
-			handler->add_refs();
+			handler->shared_ptrs.clear();
+			mirror.shared_ptrs.restore_to(handler->shared_ptrs);
 		}
 
 		// Finally, resume the topmost one:
@@ -132,11 +134,6 @@ namespace effects {
 		Handler_Frame *c = current();
 		if (c->stack.contains(p))
 			c->shared_ptrs.erase(p);
-	}
-
-	void Handler_Frame::add_refs() {
-		for (Shared_Ptr_Base *p : shared_ptrs)
-			p->count->ref();
 	}
 
 }

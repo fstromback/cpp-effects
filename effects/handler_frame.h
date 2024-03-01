@@ -86,9 +86,6 @@ namespace effects {
 		// Add/remove shared pointers.
 		static void add_shared_ptr(Shared_Ptr_Base *p);
 		static void remove_shared_ptr(Shared_Ptr_Base *p);
-
-		// Add references to all pointers in here.
-		void add_refs();
 	};
 
 }

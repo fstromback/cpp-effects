@@ -42,11 +42,6 @@ namespace effects {
 		Continuation(Captured_Continuation src, effects::Result<Result> &result, effects::Result<Param> &param)
 			: src(src), result(result), param(param) {}
 
-		// Destroy the continuation.
-		~Continuation() {
-			PLN("TODO: Should destroy any pointers that are in the captured continuation here!");
-		}
-
 		// Call the continuation.
 		Result operator() (Param param) const {
 			// Restore all stacks first. The parameter is stored on the stack of the receiving

@@ -74,7 +74,9 @@ namespace effects {
 #endif
 	}
 
-	Stack_Mirror::Stack_Mirror(Handler_Frame *handler, Stack &src) : handler(handler), original(&src) {
+	Stack_Mirror::Stack_Mirror(Stack &src, Pointer_Set ptrs, Handler_Frame *handler)
+		: handler(handler), shared_ptrs(std::move(ptrs)), original(&src) {
+
 		context = src.context;
 
 		size_t stack_low = reinterpret_cast<size_t>(context.uc_stack.ss_sp);
