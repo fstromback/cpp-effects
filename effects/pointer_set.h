@@ -1,5 +1,6 @@
 #pragma once
 #include "pointer.h"
+#include "debug.h"
 #include <vector>
 
 namespace effects {
@@ -14,23 +15,29 @@ namespace effects {
 		// Create an empty set.
 		Pointer_Set();
 
-		// Create, initialize from a container of Shared_Ptr_Base *
+		// Create, initialize from a container of Shared_Ptr_Base *.
+		// "steals" the refs in the container, so only used whenever the original
+		// pointers are known to be lost.
 		template <typename Container>
 		explicit Pointer_Set(const Container &c) {
+			PLN("Saving...");
 			elements.reserve(c.size());
 			for (Shared_Ptr_Base *p : c) {
 				elements.push_back(Element(p));
 			}
+			PLN("Done!");
 		}
 
 		// Restore pointers to the specified container.
 		template <typename Container>
 		void restore_to(Container &to) const {
+			PLN("Restoring...");
 			for (const Element &e : elements) {
 				to.insert(e.pointer);
 				if (e.count)
 					e.count->ref();
 			}
+			PLN("Done!");
 		}
 
 	private:
@@ -40,8 +47,7 @@ namespace effects {
 		public:
 			// Create.
 			Element(Shared_Ptr_Base *ptr) : pointer(ptr), count(ptr->count) {
-				if (count)
-					count->ref();
+				// Note: We don't increase the refcount here, since we should steal the ref!
 			}
 
 			// Copy.
@@ -73,6 +79,12 @@ namespace effects {
 				std::swap(count, o.count);
 
 				return *this;
+			}
+
+			// Destroy.
+			~Element() {
+				if (count)
+					count->deref();
 			}
 
 			// Location of the actual pointer on the stack.

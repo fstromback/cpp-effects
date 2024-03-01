@@ -21,6 +21,7 @@ namespace effects {
 
 		// Increase the references.
 		void ref() {
+			PLN("Ref " << this << " - " << refs);
 			++refs;
 		}
 
