@@ -192,7 +192,7 @@ namespace effects {
 			: Shared_Ptr_Base(count), object(&count->data) {}
 
 		template <typename U, typename... Args>
-		friend Shared_Ptr<U> make_shared(Args && ...args);
+		friend Shared_Ptr<U> mk_shared(Args && ...args);
 
 		template <typename U>
 		friend class Shared_Ptr;
@@ -213,9 +213,9 @@ namespace effects {
 	template <typename T>
 	using shared_ptr = Shared_Ptr<T>;
 
-	// Create a shared pointer.
+	// Create a shared pointer. Different name to avoid clashing with the standard library.
 	template <typename T, typename... Args>
-	Shared_Ptr<T> make_shared(Args && ...args) {
+	Shared_Ptr<T> mk_shared(Args && ...args) {
 		return Shared_Ptr<T>(new Shared_Inline_Count<T>(std::forward<Args>(args)...));
 	}
 

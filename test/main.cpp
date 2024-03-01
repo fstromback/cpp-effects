@@ -44,7 +44,7 @@ public:
 int main() {
 	int result = handle(my_handler, [](){
 		std::cout << "Hello!" << std::endl;
-		Shared_Ptr<Heap> h = make_shared<Heap>();
+		Shared_Ptr<Heap> h = mk_shared<Heap>();
 		int from_effect = my_effect(1);
 		std::cout << "From the effect: " << from_effect << std::endl;
 		return from_effect * 2;

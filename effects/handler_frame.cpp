@@ -10,7 +10,7 @@ namespace effects {
 	// Get the current one.
 	Shared_Ptr<Handler_Frame> Handler_Frame::current() {
 		if (!top_handler) {
-			top_handler = make_shared<Handler_Frame>(Stack::current);
+			top_handler = mk_shared<Handler_Frame>(Stack::current);
 		}
 		return top_handler;
 	}
@@ -31,7 +31,7 @@ namespace effects {
 
 	void Handler_Frame::call(const Shared_Ptr<Handle_Body> &body, const Handler_Clause_Map &clauses) {
 		Shared_Ptr<Handler_Frame> current = Handler_Frame::current();
-		Shared_Ptr<Handler_Frame> next = make_shared<Handler_Frame>(Stack::allocate);
+		Shared_Ptr<Handler_Frame> next = mk_shared<Handler_Frame>(Stack::allocate);
 
 		// Note: Creation of Shared_Ptr above must be before these lines!
 		next->previous = current;
