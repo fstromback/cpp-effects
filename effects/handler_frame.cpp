@@ -24,7 +24,7 @@ namespace effects {
 		assert(shared_ptrs.empty());
 	}
 
-	void Handler_Frame::call(Handle_Body *body, const Handler_Clause_Map &clauses) {
+	void Handler_Frame::call(const Shared_Ptr<Handle_Body> &body, const Handler_Clause_Map &clauses) {
 		Handler_Frame *current = Handler_Frame::current();
 		Handler_Frame *next = new Handler_Frame(Stack::allocate);
 		next->previous = current;
@@ -32,7 +32,7 @@ namespace effects {
 		top_handler = next;
 
 		// Execute the stack!
-		next->stack.start(current->stack, &frame_main, body);
+		next->stack.start(current->stack, &frame_main, body.get());
 
 		// Note: We will return here after execution is complete, or when an effect was triggered.
 		while (current->to_resume.effect) {
@@ -45,7 +45,7 @@ namespace effects {
 
 			// Resume!
 			Resume_Params params = {
-				body,
+				body.get(),
 				resume.to_call,
 				&continuation
 			};
@@ -55,14 +55,12 @@ namespace effects {
 
 	void Handler_Frame::frame_main(void *b) {
 		Handle_Body *body = reinterpret_cast<Handle_Body *>(b);
+
 		body->call();
 
 		// Unlink:
 		Handler_Frame *current = top_handler;
 		top_handler = current->previous;
-
-		// TODO: Refcount instead?
-		// delete current;
 	}
 
 	void Handler_Frame::call_handler(size_t id, Captured_Effect *captured) {

@@ -45,7 +45,7 @@ namespace effects {
 	class Bound_Captured_Effect : public Captured_Effect {
 	public:
 		// Create.
-		Bound_Captured_Effect(Args&& ...args) : args(std::forward<Args...>(args)...) {}
+		Bound_Captured_Effect(Args&& ...args) : args(std::forward<Args>(args)...) {}
 
 		// The result produced by the effect.
 		effects::Result<Result> result;

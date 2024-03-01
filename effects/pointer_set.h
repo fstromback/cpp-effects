@@ -20,24 +20,20 @@ namespace effects {
 		// pointers are known to be lost.
 		template <typename Container>
 		explicit Pointer_Set(const Container &c) {
-			PLN("Saving...");
 			elements.reserve(c.size());
 			for (Shared_Ptr_Base *p : c) {
 				elements.push_back(Element(p));
 			}
-			PLN("Done!");
 		}
 
 		// Restore pointers to the specified container.
 		template <typename Container>
 		void restore_to(Container &to) const {
-			PLN("Restoring...");
 			for (const Element &e : elements) {
 				to.insert(e.pointer);
 				if (e.count)
 					e.count->ref();
 			}
-			PLN("Done!");
 		}
 
 	private:

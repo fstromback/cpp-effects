@@ -36,7 +36,7 @@ namespace effects {
 		static Handler_Frame *current();
 
 		// Call a function on a new handler frame.
-		static void call(Handle_Body *body, const Handler_Clause_Map &clauses);
+		static void call(const Shared_Ptr<Handle_Body> &body, const Handler_Clause_Map &clauses);
 
 		// Call an effect handler.
 		static void call_handler(size_t id, Captured_Effect *captured);

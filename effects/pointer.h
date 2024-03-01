@@ -21,13 +21,11 @@ namespace effects {
 
 		// Increase the references.
 		void ref() {
-			PLN("Ref " << this << " - " << refs);
 			++refs;
 		}
 
 		// Decrease the references. Returns "true" if we should delete everything.
 		void deref() {
-			PLN("Deref " << this << " - " << refs);
 			if (--refs == 0) {
 				delete this;
 			}
@@ -60,7 +58,7 @@ namespace effects {
 	public:
 		// Create.
 		template <typename... Args>
-		Shared_Inline_Count(Args &&...args) : data(std::forward<Args...>(args)...) {}
+		Shared_Inline_Count(Args &&...args) : data(std::forward<Args>(args)...) {}
 
 		// The data in the allocation.
 		T data;
@@ -154,6 +152,11 @@ namespace effects {
 				count->ref();
 		}
 
+		template <typename U, typename = std::enable_if<std::is_convertible_v<T *, U *> && !std::is_same_v<U *, T *>>>
+		operator Shared_Ptr<U>() const {
+			return Shared_Ptr<U>(count, object);
+		}
+
 		// Get the pointer.
 		T *get() const {
 			return object;
@@ -176,11 +179,22 @@ namespace effects {
 		// The pointer itself.
 		T *object;
 
-	public:
+	private:
+		// Helper.
+		Shared_Ptr(Shared_Count *c, T *o) : Shared_Ptr_Base(c), object(o) {
+			if (c)
+				c->ref();
+		}
+
 		// Create from an inline allocation.
-		// TODO: Should be private.
 		Shared_Ptr(Shared_Inline_Count<T> *count)
 			: Shared_Ptr_Base(count), object(&count->data) {}
+
+		template <typename U, typename... Args>
+		friend Shared_Ptr<U> make_shared(Args && ...args);
+
+		template <typename U>
+		friend class Shared_Ptr;
 	};
 
 	// Check for equality.
@@ -201,7 +215,7 @@ namespace effects {
 	// Create a shared pointer.
 	template <typename T, typename... Args>
 	Shared_Ptr<T> make_shared(Args && ...args) {
-		return Shared_Ptr<T>(new Shared_Inline_Count<T>(std::forward<Args...>(args)...));
+		return Shared_Ptr<T>(new Shared_Inline_Count<T>(std::forward<Args>(args)...));
 	}
 
 }
