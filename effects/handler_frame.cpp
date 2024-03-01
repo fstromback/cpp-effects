@@ -4,15 +4,16 @@
 
 namespace effects {
 
-#define THREAD __thread
-
 	// Per-thread link to a handler frame.
-	THREAD Handler_Frame *top_handler = nullptr;
+	thread_local Handler_Frame *top_handler = nullptr;
+
+	// Root of the current thread's handlers.
+	thread_local Handler_Frame root_handler(Stack::current);
 
 	// Get the current one.
 	Handler_Frame *Handler_Frame::current() {
 		if (!top_handler) {
-			top_handler = new Handler_Frame(Stack::current);
+			top_handler = &root_handler;
 		}
 		return top_handler;
 	}
