@@ -94,7 +94,8 @@ namespace effects {
 		Shared_Ptr() : Shared_Ptr_Base(nullptr), object(nullptr) {}
 
 		// Create from an existing allocation.
-		explicit Shared_Ptr(T *object) : Shared_Ptr_Base(new Shared_Separate_Count(object)), object(object) {}
+		explicit Shared_Ptr(T *object)
+			: Shared_Ptr_Base(object ? new Shared_Separate_Count(object) : nullptr), object(object) {}
 
 		// Copy.
 		Shared_Ptr(const Shared_Ptr<T> &src) : Shared_Ptr_Base(src.count), object(src.object) {
