@@ -76,10 +76,10 @@ namespace effects {
 	class Stack_Mirror {
 	public:
 		// Create.
-		Stack_Mirror(Stack &original, Pointer_Set shared_ptrs, Handler_Frame *handler);
+		Stack_Mirror(Stack &original, Pointer_Set shared_ptrs, Shared_Ptr<Handler_Frame> handler);
 
 		// Associated handler frame.
-		Handler_Frame *handler;
+		Shared_Ptr<Handler_Frame> handler;
 
 		// Pointers stored on the stack.
 		Pointer_Set shared_ptrs;

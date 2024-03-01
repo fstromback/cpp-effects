@@ -33,7 +33,7 @@ namespace effects {
 		~Handler_Frame();
 
 		// Get the current handler frame for the current thread.
-		static Handler_Frame *current();
+		static Shared_Ptr<Handler_Frame> current();
 
 		// Call a function on a new handler frame.
 		static void call(const Shared_Ptr<Handle_Body> &body, const Handler_Clause_Map &clauses);
@@ -52,7 +52,7 @@ namespace effects {
 		std::unordered_set<Shared_Ptr_Base *> shared_ptrs;
 
 		// Previous frame, if any.
-		Handler_Frame *previous;
+		Shared_Ptr<Handler_Frame> previous;
 
 		// Clauses handled here.
 		Handler_Clause_Map clauses;
@@ -78,7 +78,9 @@ namespace effects {
 		void call_handler(const Handler_Clause &clause, Captured_Effect *captured);
 
 		// Helper to capture a continuation.
-		static Captured_Continuation capture_continuation(Handler_Frame *from, Handler_Frame *to);
+		static Captured_Continuation capture_continuation(
+			const Shared_Ptr<Handler_Frame> &from,
+			const Shared_Ptr<Handler_Frame> &to);
 
 		// Allow registering shared ptrs here.
 		friend class Shared_Ptr_Base;

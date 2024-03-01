@@ -121,7 +121,7 @@ namespace effects {
 			src.count = nullptr;
 		}
 
-		Shared_Ptr &&operator =(Shared_Ptr<T> &&src) {
+		Shared_Ptr &operator =(Shared_Ptr<T> &&src) {
 			// Note: We could simply swap the two here. This makes it easier to catch bugs, however.
 			if (&src == this)
 				return *this;

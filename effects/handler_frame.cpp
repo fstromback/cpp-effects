@@ -5,35 +5,44 @@
 namespace effects {
 
 	// Per-thread link to a handler frame.
-	thread_local Handler_Frame *top_handler = nullptr;
-
-	// Root of the current thread's handlers.
-	thread_local Handler_Frame root_handler(Stack::current);
+	thread_local Shared_Ptr<Handler_Frame> top_handler;
 
 	// Get the current one.
-	Handler_Frame *Handler_Frame::current() {
+	Shared_Ptr<Handler_Frame> Handler_Frame::current() {
 		if (!top_handler) {
-			top_handler = &root_handler;
+			top_handler = make_shared<Handler_Frame>(Stack::current);
 		}
 		return top_handler;
 	}
 
 	Handler_Frame::Handler_Frame(Stack::Create create_mode)
-		: stack(create_mode), previous(nullptr) {}
+		: stack(create_mode), previous() {
+		PLN("Created " << this);
+	}
 
 	Handler_Frame::~Handler_Frame() {
-		assert(shared_ptrs.empty());
+		if (!shared_ptrs.empty()) {
+			PLN("WARNING: Shared pointers are still alive in a handler frame!");
+			for (Shared_Ptr_Base *p : shared_ptrs) {
+				PLN("  Pointer at " << p << ", count-object " << *(void **)p);
+			}
+		}
 	}
 
 	void Handler_Frame::call(const Shared_Ptr<Handle_Body> &body, const Handler_Clause_Map &clauses) {
-		Handler_Frame *current = Handler_Frame::current();
-		Handler_Frame *next = new Handler_Frame(Stack::allocate);
+		Shared_Ptr<Handler_Frame> current = Handler_Frame::current();
+		Shared_Ptr<Handler_Frame> next = make_shared<Handler_Frame>(Stack::allocate);
+
+		// Note: Creation of Shared_Ptr above must be before these lines!
 		next->previous = current;
 		next->clauses = clauses; // TODO: Do we really want to copy?
 		top_handler = next;
 
 		// Execute the stack!
 		next->stack.start(current->stack, &frame_main, body.get());
+
+		// Here, it is once again safe to allocate/deallocate Shared_Ptrs since frame_main has
+		// restored "top_frame" at this point.
 
 		// Note: We will return here after execution is complete, or when an effect was triggered.
 		while (current->to_resume.effect) {
@@ -60,15 +69,18 @@ namespace effects {
 		body->call();
 
 		// Unlink:
-		Handler_Frame *current = top_handler;
+		Shared_Ptr<Handler_Frame> current = top_handler;
 		top_handler = current->previous;
+
+		// Since we messed with the linking here, we need to manually unregister "current":
+		current->shared_ptrs.erase(&current);
 	}
 
 	void Handler_Frame::call_handler(size_t id, Captured_Effect *captured) {
-		for (Handler_Frame *current = top_handler; current; current = current->previous) {
+		for (Handler_Frame *current = top_handler.get(); current; current = current->previous.get()) {
 			auto found = current->clauses.find(id);
 			if (found != current->clauses.end()) {
-				Handler_Frame *prev = current->previous;
+				Handler_Frame *prev = current->previous.get();
 				assert(prev);
 				prev->call_handler(*found->second, captured);
 				return;
@@ -85,16 +97,19 @@ namespace effects {
 		stack.resume(top_handler->stack);
 	}
 
-	Captured_Continuation Handler_Frame::capture_continuation(Handler_Frame *from, Handler_Frame *to) {
+	Captured_Continuation Handler_Frame::capture_continuation(
+		const Shared_Ptr<Handler_Frame> &from,
+		const Shared_Ptr<Handler_Frame> &to) {
+
 		size_t depth = 0;
-		for (Handler_Frame *current = from; current != to; current = current->previous) {
+		for (Shared_Ptr<Handler_Frame> current = from; current != to; current = current->previous) {
 			depth++;
 		}
 
 		Captured_Continuation captured(depth);
 
 		size_t id = 0;
-		for (Handler_Frame *current = from; current != to; current = current->previous, id++) {
+		for (Shared_Ptr<Handler_Frame> current = from; current != to; current = current->previous, id++) {
 			captured.frames.push_back(Stack_Mirror(current->stack, Pointer_Set(current->shared_ptrs), current));
 		}
 
@@ -108,7 +123,7 @@ namespace effects {
 		// Link the handlers into "top_frame". Also update reference counts.
 		for (size_t i = src.frames.size(); i > 0; i--) {
 			const Stack_Mirror &mirror = src.frames[i - 1];
-			Handler_Frame *handler = mirror.handler;
+			const Shared_Ptr<Handler_Frame> &handler = mirror.handler;
 
 			// Link into the top frame.
 			handler->previous = top_handler;
@@ -124,14 +139,16 @@ namespace effects {
 	}
 
 	void Handler_Frame::add_shared_ptr(Shared_Ptr_Base *p) {
-		Handler_Frame *c = current();
-		if (c->stack.contains(p))
+		// Note: It is OK to use top_handler directly, since we are only interested in storing
+		// pointers for child frames, never for the root.
+		Handler_Frame *c = top_handler.get();
+		if (c && c->stack.contains(p))
 			c->shared_ptrs.insert(p);
 	}
 
 	void Handler_Frame::remove_shared_ptr(Shared_Ptr_Base *p) {
-		Handler_Frame *c = current();
-		if (c->stack.contains(p))
+		Handler_Frame *c = top_handler.get();
+		if (c && c->stack.contains(p))
 			c->shared_ptrs.erase(p);
 	}
 
