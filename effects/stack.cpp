@@ -66,8 +66,10 @@ namespace effects {
 	}
 
 	static size_t get_sp(const ucontext_t &context) {
-#ifdef __x86_64__
+#if defined(__x86_64__)
 		return context.uc_mcontext.gregs[REG_RSP];
+#elif defined(__aarch64__)
+		return context.uc_mcontext.sp;
 #else
 #error "Unknown machine, can not extract the stack pointer."
 		return 0;
