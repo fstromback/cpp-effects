@@ -1,6 +1,6 @@
 CXX := g++
 CXXFLAGS := -std=c++17
-CPPFLAGS := -DDEBUG
+#CPPFLAGS := -DDEBUG
 DEPFLAGS := -MMD -MP
 
 BUILDDIR := build
@@ -17,7 +17,7 @@ $(shell mkdir -p $(BUILDDIR)/test)
 .PHONY: test lib clean
 
 test: $(TESTS)
-	for i in $(TESTS); do echo "Running $$i..."; $$i; done
+	@for i in $(TESTS); do echo "Running $$i..."; $$i; done
 
 $(TESTS):$(BUILDDIR)/test/%: test/%.cpp $(BUILDDIR)/effects.a
 	$(CXX) -I. $(CPPFLAGS) $(CXXFLAGS) $(DEPFLAGS) -o $@ $< $(BUILDDIR)/effects.a

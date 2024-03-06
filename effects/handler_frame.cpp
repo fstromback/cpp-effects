@@ -1,6 +1,7 @@
 #include "handler_frame.h"
 #include "handle.h"
 #include <cassert>
+#include <iostream>
 
 namespace effects {
 
@@ -20,9 +21,9 @@ namespace effects {
 
 	Handler_Frame::~Handler_Frame() {
 		if (!shared_ptrs.empty()) {
-			PLN("WARNING: Shared pointers are still alive in a handler frame!");
+			std::cerr << "WARNING: Shared pointers are still alive in a handler frame!" << std::endl;
 			for (Shared_Ptr_Base *p : shared_ptrs) {
-				PLN("  Pointer at " << p << ", count-object " << *(void **)p);
+				std::cout << "  Pointer at " << p << ", count-object " << *(void **)p << std::endl;
 			}
 		}
 	}
