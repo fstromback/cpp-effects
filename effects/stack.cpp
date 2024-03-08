@@ -66,6 +66,8 @@ namespace effects {
 	}
 
 	static size_t get_sp(const ucontext_t &context) {
+#if defined(__linux__)
+
 #if defined(__x86_64__)
 		return context.uc_mcontext.gregs[REG_RSP];
 #elif defined(__aarch64__)
@@ -74,6 +76,27 @@ namespace effects {
 #error "Unknown machine, can not extract the stack pointer."
 		return 0;
 #endif
+
+#elif defined(__APPLE__)
+
+#if defined(__x86_64)
+#if __DARWIN_UNIX03
+		return context.uc_mcontext.__ss.__rsp;
+#else
+		return context.uc_mcontext.ss.rsp;
+#endif
+#elif defined(__aarch64__)
+#if __DARWIN_UNIX03
+		return context.uc_mcontext.__ss.__sp;
+#else
+		return context.uc_mcontext.ss.sp;
+#endif
+#endif
+
+#else
+#error "Unknown platform."
+#endif
+
 	}
 
 	Stack_Mirror::Stack_Mirror(Stack &src, Pointer_Set ptrs, Shared_Ptr<Handler_Frame> handler)

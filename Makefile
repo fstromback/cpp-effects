@@ -1,7 +1,8 @@
 CXX := g++
 CXXFLAGS := -std=c++17
-CPPFLAGS := -D_XOPEN_SOURCE
 #CPPFLAGS := -DDEBUG
+# Required for OSX, does not hurt on other platforms.
+CPPFLAGS := -D_XOPEN_SOURCE
 DEPFLAGS := -MMD -MP
 
 BUILDDIR := build
