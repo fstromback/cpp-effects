@@ -79,17 +79,18 @@ namespace effects {
 
 #elif defined(__APPLE__)
 
+		// Note: The mcontext is a pointer, we probably need to store that as well!
 #if defined(__x86_64)
 #if __DARWIN_UNIX03
-		return context.uc_mcontext.__ss.__rsp;
+		return context.uc_mcontext->__ss.__rsp;
 #else
-		return context.uc_mcontext.ss.rsp;
+		return context.uc_mcontext->ss.rsp;
 #endif
 #elif defined(__aarch64__)
 #if __DARWIN_UNIX03
-		return context.uc_mcontext.__ss.__sp;
+		return context.uc_mcontext->__ss.__sp;
 #else
-		return context.uc_mcontext.ss.sp;
+		return context.uc_mcontext->ss.sp;
 #endif
 #endif
 
