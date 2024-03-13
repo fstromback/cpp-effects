@@ -94,6 +94,9 @@ namespace effects {
 		// Contents of the stack.
 		std::vector<char> stack_copy;
 
+		// Copy of the machine state, if not included in "context" above on this particular platform.
+		std::vector<char> state_copy;
+
 		// Stack we originally copied from, so that we can restore to it.
 		Stack *original;
 	};

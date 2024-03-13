@@ -92,12 +92,41 @@ namespace effects {
 #else
 		return context.uc_mcontext->ss.sp;
 #endif
+#else
+#error "Unknown machine, can not extract the stack pointer."
+		return 0;
 #endif
 
 #else
 #error "Unknown platform."
 #endif
+	}
 
+	template <typename T>
+	struct Save_MContext {
+		static void save(T &context, std::vector<char> &store) {
+			// Only need to do something if the member is a pointer!
+			(void)context;
+			(void)store;
+		}
+	};
+
+	template <typename T>
+	struct Save_MContext<T *> {
+		// Only need to do something if the member is a pointer!
+		static void save(T *&context, std::vector<char> &store) {
+			const char *begin = reinterpret_cast<const char *>(context);
+			const char *end = begin + sizeof(T);
+			store = std::vector<char>(begin, end);
+
+			// Store the updated pointer back!
+			context = reinterpret_cast<T *>(store.data());
+		}
+	};
+
+	static void save_mcontext(ucontext_t &context, std::vector<char> &store) {
+		using Type = std::remove_cv_t<std::remove_reference_t<decltype(context.uc_mcontext)>>;
+		Save_MContext<Type>::save(context.uc_mcontext, store);
 	}
 
 	Stack_Mirror::Stack_Mirror(Stack &src, Pointer_Set ptrs, Shared_Ptr<Handler_Frame> handler)
@@ -109,6 +138,9 @@ namespace effects {
 		size_t stack_high = stack_low + context.uc_stack.ss_size;
 
 		size_t sp = get_sp(context);
+
+		// Save the machine context if we need to do that.
+		save_mcontext(context, state_copy);
 
 		// Note: We assume that stack grows towards lower adresses.
 		char *copy_start = reinterpret_cast<char *>(sp);
